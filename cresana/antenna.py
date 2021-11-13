@@ -232,9 +232,10 @@ class AntennaArray:
         return pos - np.expand_dims(self.positions, 1)
 
     def get_amplitude(self, dist):
-        r = np.sqrt(dist[:,:,0]**2 + dist[:,:,1]**2)
-        z = dist[:,:,2]
-        return self.gain_f(z, r)
+        #r = np.sqrt(dist[:,:,0]**2 + dist[:,:,1]**2)
+        #z = dist[:,:,2]
+        #return self.gain_f(z, r)
+        return self.gain_f(dist)
 
     @classmethod
     def make_multi_ring_array(cls, R, n_antenna, n_rings, z_min, z_max, gain_f):
