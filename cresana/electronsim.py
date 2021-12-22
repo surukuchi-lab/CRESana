@@ -141,9 +141,9 @@ def read_kass_sim(name):
     y = data(b'guiding_center_position_y')
     z = data(b'guiding_center_position_z')
 
-    B_x = data(b'magnetic_field_x')
-    B_y = data(b'magnetic_field_y')
-    B_z = data(b'magnetic_field_z')
+    B_x = data(b'guiding_center_magnetic_field_x')
+    B_y = data(b'guiding_center_magnetic_field_y')
+    B_z = data(b'guiding_center_magnetic_field_z')
 
     px = data(b'momentum_x')
     py = data(b'momentum_y')
