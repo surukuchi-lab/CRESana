@@ -39,8 +39,8 @@ sr = 200.0e6
 f_LO = 25.85e9
 
 B0 = .956 #T
-L = 0.1 #1m
-L0 = 2.5 #0.05m
+L = 1 #1m
+L0 = .05 #0.05m
 
 tf_file = args.tf
 out_file = args.out
@@ -52,7 +52,7 @@ phi = args.phi
 z0 = args.z0
 
 electron = Electron(E_kin, pitch, r=r_e, phi=phi, z0=z0)
-trap = BathtubTrap(B0, L, L0)
+trap = BathtubTrap(B0, L, L0, add_gradB=False, add_curvB=False)
 array = AntennaArray.make_multi_ring_array(r, n_channels, 1, 0., 0., SlottedWaveguideAntenna(5, tf_file))
 
 t_max = 1/sr*n_samples

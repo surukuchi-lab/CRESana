@@ -117,7 +117,7 @@ class Trap(ABC):
 
             w = get_omega_cyclotron(B, E_kin)
 
-            v_drift = np.zeros_like(grad)
+            v_drift = np.zeros_like(grad, dtype=float)
 
             if self.add_gradB:
                 v_drift -= get_v_gradB(E_kin, pitch, B, w, grad)
@@ -313,6 +313,7 @@ class BathtubTrap(Trap):
     def B_field(self, r, z):
         # in case float input is used
         z_np = np.expand_dims(z, 0)
+        r_np = np.expand_dims(r, 0)
 
         B = flat_potential(z_np, self._L)
 
@@ -322,8 +323,11 @@ class BathtubTrap(Trap):
         z_left_harmonic = z_np[left_harmonic] + self._L/2
         z_right_harmonic = z_np[right_harmonic] - self._L/2
 
-        # B[left_harmonic] = harmonic_potential(r, z_left_harmonic, self._B0, self._L0)
-        # B[right_harmonic] = harmonic_potential(r, z_right_harmonic, self._B0, self._L0)
+        r_left_harmonic = r_np[left_harmonic]
+        r_right_harmonic = r_np[right_harmonic]
+
+        B[left_harmonic] = harmonic_potential(r_left_harmonic, z_left_harmonic, self._B0, self._L0)
+        B[right_harmonic] = harmonic_potential(r_right_harmonic, z_right_harmonic, self._B0, self._L0)
 
         return B[0] #undo the expand_dims in first line
 
