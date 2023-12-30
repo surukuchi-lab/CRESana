@@ -81,14 +81,6 @@ class Trap(ABC):
         sintheta = np.sin(theta_0)*np.sqrt(B/B0)
         sintheta[sintheta>1.] = 1.
 
-       # np.set_printoptions(precision=20)
-
-       # print('>1',np.where(sintheta>1))
-       # print('>1',sintheta[sintheta>1])
-
-       # print('<-1',np.where(sintheta<-1))
-       # print('<-1',sintheta[sintheta<-1])
-
         theta = np.pi/2 - np.arcsin(sintheta)
         theta = sign*theta + np.pi/2
         return theta
@@ -305,7 +297,7 @@ class BoxTrap(Trap):
 
 class BathtubTrap(Trap):
 
-    def __init__(self, B0, L, add_gradB=True, add_curvB=True):
+    def __init__(self, B0, L, L0, add_gradB=True, add_curvB=True):
         warn("'BathtubTrap' is deprecated in this version. It does not support all the features it should.", DeprecationWarning)
         Trap.__init__(self, add_gradB, add_curvB)
         self._B0 = B0
@@ -316,13 +308,13 @@ class BathtubTrap(Trap):
         #return lambda t: get_pos(   np.ones_like(t)*electron._x0,
         #                            np.ones_like(t)*electron._y0,
         #                            self._get_z(electron, t))
-        return lambda t: np.ones_like(t)*electron.r, self._get_z(electron, t)
+        return lambda t, z: (np.ones_like(t)*electron.r, self._get_z(electron,t))
 
     def B_field(self, r, z):
         # in case float input is used
         z_np = np.expand_dims(z, 0)
 
-        B = flat_potential(z_np, self._B0)
+        B = flat_potential(z_np, self._L)
 
         left_harmonic = z_np < -self._L/2
         right_harmonic = z_np > self._L/2
@@ -330,18 +322,18 @@ class BathtubTrap(Trap):
         z_left_harmonic = z_np[left_harmonic] + self._L/2
         z_right_harmonic = z_np[right_harmonic] - self._L/2
 
-        B[left_harmonic] = harmonic_potential(z_left_harmonic, self._B0, self._L0)
-        B[right_harmonic] = harmonic_potential(z_right_harmonic, self._B0, self._L0)
+        # B[left_harmonic] = harmonic_potential(r, z_left_harmonic, self._B0, self._L0)
+        # B[right_harmonic] = harmonic_potential(r, z_right_harmonic, self._B0, self._L0)
 
         return B[0] #undo the expand_dims in first line
 
     def _period(self, electron):
         flat_time = self._L/(electron.v0*np.cos(electron.pitch))
-        harmonic_time = np.pi/get_omega_harmonic(electron.v0, electron.pitch, self._L0)
+        harmonic_time = np.pi/get_omega_harmonic(electron.v0, electron.pitch, electron.r, self._L0)
 
         return 2*(flat_time+harmonic_time)
 
-    def _get_z(self, electron, t):
+    def _get_z(self, electron,t):
         v_axial = electron.v0 * np.cos(electron.pitch)
         omega = self._get_omega(electron)
         z_max = self._get_z_max(electron)
@@ -363,6 +355,7 @@ class BathtubTrap(Trap):
         else:
             t0 = -t1/2 - 1/omega*np.arcsin((-electron._z0 - self._L/2)/z_max)
 
+        # def f(t):
         t = t + t1/2 + t0 #zero point shifted such that z(0) = z0
         t = t%T # z periodic with T
 
@@ -376,8 +369,9 @@ class BathtubTrap(Trap):
         z[right_harmonic] = self._L/2 + z_max * np.sin(omega*(t[right_harmonic] - t1))
         z[second_flat] = self._L/2 - v_axial*(t[second_flat] - t2)
         z[left_harmonic] = -self._L/2 - z_max * np.sin(omega*(t[left_harmonic] - t3))
-
         return z
+        
+        # return f
 
     def pitch(self, electron):
         v_axial = electron.v0 * np.cos(electron.pitch)
@@ -430,17 +424,16 @@ class BathtubTrap(Trap):
         return f
 
     def get_grad_mag(self, r, z):
-
         B = self.B_field(r, z)
         grad = np.zeros_like(B)
 
-        return B, grad
+        return B, grad, grad
 
     def _get_omega(self, electron):
-        return get_omega_harmonic(electron.v0, electron.pitch, self._L0)
+        return get_omega_harmonic(electron.v0, electron.pitch, electron.r, self._L0)
 
     def _get_z_max(self, electron):
-        return get_z_max_harmonic(self._L0, electron.pitch)
+        return get_z_max_harmonic(self._L0, electron.pitch, electron.r)
 
     def get_f(self, electron, v):
         return 1/self._period(electron)
