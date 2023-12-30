@@ -426,8 +426,8 @@ class BathtubTrap(Trap):
     def get_grad_mag(self, r, z):
         B = self.B_field(r, z)
         grad = np.zeros_like(B)
-
-        return B, grad, grad
+        curl = np.zeros_like(B)
+        return B, grad, curl
 
     def _get_omega(self, electron):
         return get_omega_harmonic(electron.v0, electron.pitch, electron.r, self._L0)
